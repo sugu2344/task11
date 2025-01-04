@@ -1,5 +1,7 @@
 const User = require("../models/users");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { SECRET_KEY } = require("../utils/config");
 const authController = {
   // register
   register: async (request, response) => {
@@ -26,8 +28,27 @@ const authController = {
     // response.json({ message: "auth created sucessfully" });
   },
   // login
-  login: (request, response) => {
-    response.json({ message: "login created sucessfully" });
+  login: async (request, response) => {
+    try {
+      const { email, password } = request.body;
+      const user = await User.findOne({ email });
+      if (!user) {
+        return response.status(400).json({ message: "user does not exist" });
+      }
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return response.status(400).json({ message: "invalid password" });
+      }
+      const token = await jwt.sign(
+        {
+          id: user._id,
+        },
+        SECRET_KEY
+      );
+      response.json({message:"user logged in sucessfully"})
+    } catch (error) {
+      response.status(500).json({ message: error.message });
+    }
   },
   // logout
   //   logout: (request, response) => {
