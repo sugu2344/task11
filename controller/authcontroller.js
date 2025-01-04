@@ -45,7 +45,7 @@ const authController = {
         },
         SECRET_KEY
       );
-      response.json({message:"user logged in sucessfully"})
+      response.json({ token, message: "user logged in sucessfully" });
     } catch (error) {
       response.status(500).json({ message: error.message });
     }
@@ -55,8 +55,19 @@ const authController = {
   //     response.json({ message: "logout sucessfully done" });
   //   },
   // register
-  me: (request, response) => {
-    response.json({ message: "me created sucessfully" });
+  me: async (request, response) => {
+    try {
+      const userId = request.userId;
+      // console.log(userId);
+      const user = await User.findById(userId).select(
+        "-password -createdAt -updatedAt"
+      );
+      // select is ised to remove visibility  of data what are we dont want to see the datas
+
+      response.json(user);
+    } catch (error) {
+      response.status(500).json({ message: error.message });
+    }
   },
 };
 module.exports = authController;
